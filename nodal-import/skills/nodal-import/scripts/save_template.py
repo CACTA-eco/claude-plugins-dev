@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Rebuild a template workbook from base64 text and verify it byte for byte.
+"""Save a template workbook from the generate tool's result and verify it byte for byte.
 
-The generate tools return the file as base64 plus its SHA-256. Pipe the base64 in; the
-script decodes it, compares the hash, writes the file and checks that it opens.
+The generate tools return a short-lived `download_url` plus the file's SHA-256. Preferred:
+
+Download:    save_template.py --out FILE --sha256 HEX --url URL
+             fetches the exact bytes, compares the hash, writes the file, checks it opens.
+
+If the download is blocked (exit 4, "download failed"), call the tool again with
+`inline=True` to get `content_base64`, and pipe the base64 in instead:
 
 One piece:   save_template.py --out FILE --sha256 HEX      < base64
 In chunks:   save_template.py --out FILE --sha256 HEX --part 1 --of 3 < first third
@@ -17,6 +22,8 @@ import binascii
 import hashlib
 import json
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import openpyxl
@@ -33,10 +40,31 @@ def assemble(text: str, expected_sha: str, out: Path) -> dict:
         data = base64.b64decode(text, validate=True)
     except (binascii.Error, ValueError) as exc:
         return {**result, "error": f"not valid base64: {exc}"}
+    return save_verified(data, expected_sha, out, result)
+
+
+def download(url: str, expected_sha: str, out: Path, timeout: float = 60) -> dict:
+    """Fetch `url`, verify the hash, write `out` and confirm it opens."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:  # noqa: S310
+            data = response.read()
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        return {
+            "ok": False,
+            "download_failed": True,
+            "error": f"download failed ({exc}); the network may block this domain: "
+            "call the tool again with inline=True and save the base64 instead",
+        }
+    return save_verified(data, expected_sha, out, {"ok": False, "downloaded_bytes": len(data)})
+
+
+def save_verified(data: bytes, expected_sha: str, out: Path, result: dict) -> dict:
+    """Check `data` against the hash, write it to `out` and confirm the workbook opens."""
     actual = hashlib.sha256(data).hexdigest()
     result["sha256_actual"] = actual
     if actual != expected_sha:
-        return {**result, "error": "sha256 mismatch: the copy differs from the original; resend it"}
+        return {**result, "error": "sha256 mismatch: the file differs from the original; fetch or resend it"}
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
     try:
         result["sheets"] = openpyxl.load_workbook(out).sheetnames
@@ -51,10 +79,17 @@ def main() -> int:
     )
     parser.add_argument("--out", required=True)
     parser.add_argument("--sha256", required=True)
+    parser.add_argument("--url", help="download_url from the tool result (preferred)")
     parser.add_argument("--part", type=int)
     parser.add_argument("--of", type=int)
     args = parser.parse_args()
     out = Path(args.out)
+    if args.url:
+        result = download(args.url, args.sha256, out)
+        print(json.dumps(result, indent=2))
+        if result["ok"]:
+            return 0
+        return 4 if result.get("download_failed") else 1
     text = "".join(sys.stdin.read().split())
 
     if args.part is None:
