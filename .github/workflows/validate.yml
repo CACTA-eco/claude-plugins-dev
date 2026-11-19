@@ -1,0 +1,41 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Validate marketplace and plugins
+        run: claude plugin validate .
+
+      - name: Check plugin versions match marketplace entries
+        run: |
+          status=0
+          while IFS=$'\t' read -r name source version; do
+            pv=$(jq -r '.version' "$source/.claude-plugin/plugin.json")
+            if [ "$pv" != "$version" ]; then
+              echo "::error::$name: marketplace.json has $version but plugin.json has $pv"
+              status=1
+            fi
+          done < <(jq -r '.plugins[] | [.name, .source, .version] | @tsv' .claude-plugin/marketplace.json)
+          exit $status
+
+      - name: Scan plugins/ for secrets
+        run: |
+          pattern='AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9_-]{20,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+|(secret|token|password|api[_-]?key)["'"'"' ]*[:=]["'"'"' ]*[A-Za-z0-9/+_-]{20,}'
+          if grep -rEIn "$pattern" plugins/; then
+            echo "::error::Possible secret found under plugins/"
+            exit 1
+          fi

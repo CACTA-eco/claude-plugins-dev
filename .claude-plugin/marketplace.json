@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cacta",
+  "owner": {
+    "name": "Cacta",
+    "url": "https://github.com/CACTA-eco"
+  },
+  "metadata": {
+    "description": "Claude plugins published by Cacta."
+  },
+  "plugins": [
+    {
+      "name": "template-filler",
+      "source": "./plugins/template-filler",
+      "description": "Fill Cacta bulk-import templates from your source data using the Cacta MCP server.",
+      "version": "0.1.0"
+    }
+  ]
+}

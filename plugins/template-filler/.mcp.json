@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "cacta": {
+      "type": "http",
+      "url": "${CACTA_MCP_URL:-https://mcp.dev.cacta.eco/nodal-db/mcp}",
+      "headers": {
+        "Authorization": "Bearer ${CACTA_MCP_TOKEN}"
+      }
+    }
+  }
+}

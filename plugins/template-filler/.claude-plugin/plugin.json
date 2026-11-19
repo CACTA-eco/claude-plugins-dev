@@ -1,0 +1,13 @@
+{
+  "name": "template-filler",
+  "version": "0.1.0",
+  "description": "Fill Cacta bulk-import templates from your source data using the Cacta MCP server.",
+  "author": {
+    "name": "Cacta",
+    "url": "https://github.com/CACTA-eco"
+  },
+  "homepage": "https://github.com/CACTA-eco/claude-plugins",
+  "repository": "https://github.com/CACTA-eco/claude-plugins",
+  "license": "MIT",
+  "keywords": ["cacta", "template", "excel", "bulk-import", "mcp"]
+}
