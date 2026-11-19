@@ -1,0 +1,6 @@
+{
+  "name": "nodal-import",
+  "version": "0.1.2",
+  "description": "Map a user's data onto Nodal bulk-import Excel files (nodes, catalogs, observations) and check them before upload.",
+  "skills": "./skills"
+}
