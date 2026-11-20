@@ -1,4 +1,4 @@
-"""Helpers shared by the nodal-import scripts (stdlib plus openpyxl only).
+"""Helpers shared by the template-filler scripts (stdlib plus openpyxl only).
 
 The reader for the hidden `_meta` sheet mirrors `core/core/xlsx_meta.py`; a test in
 mcp-server/tests keeps the two in step, since the skill cannot import `core`.
