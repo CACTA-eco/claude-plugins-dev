@@ -113,16 +113,27 @@ def check_product(
 
 
 def resolve_parcel(
-    cells: dict[str, Any], meta: dict[str, Any]
+    cells: dict[str, Any], meta: dict[str, Any], establishment_level: bool = False
 ) -> tuple[tuple[str, str] | None, str | None]:
-    """((campo, lote) key, None) when the row's parcel exists, else (None, why not)."""
+    """((campo, lote) key, None) when the row's parcel exists, else (None, why not).
+
+    On an establishment-level sheet (land use) a blank lote is valid and targets the campo
+    itself: the key is then (campo, "").
+    """
     establishment = str(cells.get("_establishment") or "").strip()
     parcel = str(cells.get("_parcel") or "").strip()
-    if not establishment or not parcel:
-        return None, "the Establishment and Parcel columns are required"
+    if not establishment or (not parcel and not establishment_level):
+        what = (
+            "the Establishment column is"
+            if establishment_level
+            else "the Establishment and Parcel columns are"
+        )
+        return None, f"{what} required"
     by_campo = {name.lower(): lotes for name, lotes in meta["parcels_by_establishment"].items()}
     if establishment.lower() not in by_campo:
         return None, f"establishment {establishment!r} does not exist"
+    if not parcel:
+        return (establishment.lower(), ""), None
     if parcel.lower() not in {lote.lower() for lote in by_campo[establishment.lower()]}:
         return None, f"parcel {parcel!r} does not exist under establishment {establishment!r}"
     return (establishment.lower(), parcel.lower()), None
@@ -135,7 +146,7 @@ def check_row(
     failed = False
     node = None
     if sheet["has_parcel_columns"]:
-        node, problem = resolve_parcel(cells, meta)
+        node, problem = resolve_parcel(cells, meta, sheet.get("establishment_level", False))
         if problem:
             report.error(row, "Establishment / Parcel", problem)
             failed = True

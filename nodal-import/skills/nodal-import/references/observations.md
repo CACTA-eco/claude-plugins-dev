@@ -29,7 +29,8 @@ dimension in the first table below, and the harvest companion sheets, has two pa
 | `_parcel` | Name of the lote inside that campo. Must already exist |
 
 Names are matched ignoring case and nothing is created: a parcel that is not on the platform yet
-is an error. Load nodes first.
+is an error. Load nodes first. `luluc` carries the same two columns, but its `_parcel` may be left
+blank: the row then applies to the whole campo.
 
 | Type | Write it as |
 |---|---|
@@ -68,7 +69,7 @@ The describe output is authoritative: tenants can change their schemas.
   the dated operations, and never put `crop` in those rows.
 - **Hidden fields.** `packaging_disposal_method` (fertiliser, agrochemical, seed) is filled in by
   the import. Do not write it.
-- **No parcel columns** for `luluc`, `irrigation_season`, `electricity_use`, `other_consumables`,
+- **No parcel columns** for `irrigation_season`, `electricity_use`, `other_consumables`,
   `others`, `perennial_planting` and `regenerative_practice`: the user picks the parcels or nodes in
   the app at upload, and the rows carry no campo or lote. Do not add them. `crop`, where offered,
   is written by you and is optional.
