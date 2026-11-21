@@ -20,8 +20,7 @@ This skill uses tools from a Cacta-compatible MCP server. Refer to them by bare 
 ## Fallback
 
 If these tools are not available in this session, tell the user to connect a
-compatible MCP server (see the plugin README for `CACTA_MCP_URL` and
-`CACTA_MCP_TOKEN`) and stop. Do not attempt the task without the tools.
+compatible MCP server (see the repository README) and stop. Do not attempt the task without the tools.
 
 ## Workflow
 

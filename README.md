@@ -27,20 +27,13 @@ Customize → Plugins → **+** → Add marketplace → Add from a repository �
 |---|---|---|
 | `template-filler` | 0.1.0 | Fill Cacta bulk-import templates from your source data using the Cacta MCP server. |
 
-## Using a different MCP server
+## MCP server
 
-The plugin connects to a server named `cacta` whose URL and credentials come from
-environment variables, set before starting Claude Code:
+The plugin connects to a server named `cacta` at
+`https://mcp.dev.cacta.eco/nodal-db/mcp`. Authentication is handled by Claude
+(OAuth) when you connect; no environment variables are needed.
 
-| Variable | Purpose |
-|---|---|
-| `CACTA_MCP_URL` | MCP server URL. Defaults to the Cacta server configured in `.mcp.json`. |
-| `CACTA_MCP_TOKEN` | Bearer token sent in the `Authorization` header. |
-
-```bash
-export CACTA_MCP_URL="https://mcp.example.com/mcp"
-export CACTA_MCP_TOKEN="..."
-```
+To use a different server, edit the `url` in `plugins/template-filler/.mcp.json`.
 
 ## License
 
