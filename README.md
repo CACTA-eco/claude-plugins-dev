@@ -25,7 +25,7 @@ Customize → Plugins → **+** → Add marketplace → Add from a repository �
 
 | Plugin | Version | Description |
 |---|---|---|
-| `template-filler` | 0.1.0 | Fill Cacta bulk-import templates from your source data using the Cacta MCP server. |
+| `template-filler` | 0.1.6 | Fill Cacta bulk-import templates from your source data using the Cacta MCP server. |
 
 ## MCP server
 

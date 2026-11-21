@@ -13,7 +13,7 @@
       "name": "template-filler",
       "source": "./plugins/template-filler",
       "description": "Fill Cacta bulk-import templates from your source data using the Cacta MCP server.",
-      "version": "0.1.0"
+      "version": "0.1.6"
     }
   ]
 }
