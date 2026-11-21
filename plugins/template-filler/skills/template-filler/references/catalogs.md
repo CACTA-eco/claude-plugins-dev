@@ -10,9 +10,8 @@ spreadsheet form.
 ## Fields
 
 Read them from the template rather than from here: the type's fields differ and tenants can
-customise them. Headers are the field keys, so `rows.json` uses the same names. After saving the
-template, run `python3 scripts/describe_template.py /tmp/template.xlsx` for each field's type,
-flags and allowed values (add `--all-options` for the full lists).
+customise them. Headers are the field keys, so `rows.json` uses the same names. Each field's type,
+flags and allowed values are in the template's `_meta` sheet.
 
 Every row needs a `name`. The rest follow these rules:
 
@@ -27,7 +26,7 @@ Every row needs a `name`. The rest follow these rules:
 
 Percentages are plain numbers (`46`, not `0.46`).
 
-## What `scripts/validate_catalogs.py` checks
+## What to check
 
 Errors (the import would reject the row): unknown column, wrong number format, a value outside a
 closed list, a date that is not text in ISO form, a value outside the schema's range, a required
@@ -56,12 +55,12 @@ both sheets in one JSON keyed by sheet name:
 closed lists (code or label); a blank unit means g/L. The concentration is a number, and a
 decimal comma is accepted here.
 
-The script reports as errors: a product that is not on the Data sheet (the import would drop
+Errors: a product that is not on the Data sheet (the import would drop
 its ingredients silently), an ingredient or unit outside its list (the import rejects the row), a
 missing or non-numeric concentration.
 Warnings: a product with no ingredients (needed for calculations), the same product and
 ingredient twice, a negative concentration, a row missing its product or ingredient (the import
-skips it). The ingredient list can be long: `describe_template.py --all-options` prints it.
+skips it).
 
 ## Not checked
 

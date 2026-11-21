@@ -5,16 +5,15 @@ description: Map a user's source data (CSV, XLSX, PDF, pasted tables) onto a Nod
 
 # Nodal bulk import
 
-You turn the user's data into the platform's bulk-import workbook, check it with the scripts
-here, and hand it back. You never upload anything: the user uploads the final file in the app.
+You turn the user's data into the platform's bulk-import workbook, and hand it back. You never upload anything: the user uploads the final file in the app.
 
 ## What is available
 
-| Entity | Generate tool (MCP) | Local check | Reference |
-|---|---|---|---|
-| Parcels and establishments (nodes) | `generate_node_bulk_excel` | `scripts/validate_nodes.py` | `references/nodes.md` |
-| Catalog entries | `generate_catalog_bulk_excel` | `scripts/validate_catalogs.py` | `references/catalogs.md` |
-| Observations | `generate_observation_bulk_excel` | `scripts/validate_observations.py` | `references/observations.md` |
+| Entity | Generate tool (MCP) | Reference |
+|---|---|---|
+| Parcels and establishments (nodes) | `generate_node_bulk_excel` | `references/nodes.md` |
+| Catalog entries | `generate_catalog_bulk_excel` | `references/catalogs.md` |
+| Observations | `generate_observation_bulk_excel` | `references/observations.md` |
 
 Order of dependencies: nodes first, then catalog entries, then observations (they refer to
 parcels and to catalog names). Observations also need the user's
@@ -24,30 +23,25 @@ Read the reference file of the entity you are working on before you start.
 
 ## Workflow
 
-1. **Get the blank template.** Call the generate tool with no `rows`. It returns a short-lived
-   `download_url` and `sha256`. The workbook carries a hidden `_meta` sheet the scripts rely
-   on: never convert, re-save or rebuild the file with anything but these scripts.
-2. **Save it in the sandbox.** Run `python3 scripts/save_template.py --out /tmp/template.xlsx
-   --sha256 <sha256> --url '<download_url>'`. The script downloads the exact bytes and checks
-   the hash: you never copy file content yourself. If it reports `download failed` (exit 4),
-   the organization's network settings probably block the link's domain: tell the user an admin
-   can allow it (Settings > Capabilities > code execution > additional allowed domains), and
-   meanwhile call the generate tool again with `inline=True`. That returns `content_base64`:
-   write it yourself as a heredoc on stdin of the same script (without `--url`), copying it
-   exactly. A mismatch is reported and nothing is written: resend. If the result looks cut off,
-   or `content_base64` is over about 20,000 characters, or a single copy fails once, send it in
-   parts of about 5,000 characters (`--part 1 --of 4`, and so on); the file is built after the
-   last part arrives. Never copy from a result you only saw partly.
-3. **Map the data.** Run `python3 scripts/describe_template.py /tmp/template.xlsx` to see the
-   template's fields, types and allowed values. Read the user's source yourself. Match each source column to a template
+1. **Get the blank template.** Call the generate tool with no `rows`. The workbook (and, for
+   nodes and catalogs, its hidden `_meta` sheet) documents every field: key, type, required
+   flag and allowed values. Read it to learn the fields.
+2. **Map the data.** Read the user's source yourself. Match each source column to a template
    field. Ask the user instead of guessing when a value has no clear match.
-4. **Fill it.** Write the mapped rows to `rows.json` (a list of objects keyed by field key, see the
-   entity reference) and run `python3 scripts/fill_template.py /tmp/template.xlsx rows.json
-   <outputs>/<name>.xlsx`.
-5. **Check it.** Run the entity's validate script on that file. It prints JSON and exits 1 when
-   there are errors: fix the data, refill from the blank template, and check again until
-   `"ok": true`. Warnings do not block, but mention them to the user.
-6. **Hand over** the file in `<outputs>`, with a short summary: rows mapped,
+3. **Fill it.** Call the generate tool again with `rows` set to the mapped data (see the entity
+   reference for the shape). It returns a short-lived `download_url` and `sha256`; if the
+   organization's network blocks the link's domain, call again with `inline=True` to get
+   `content_base64`.
+4. **Check it.** For observations and catalog entries, validate the generated file with the
+   server's dry run: call `request_upload_url`, upload the exact file with
+   `curl -X PUT --upload-file <file.xlsx> '<upload_url>'` (no other headers, never re-save it),
+   then call `validate_observation_bulk_excel` or `validate_catalog_bulk_excel` with the
+   `upload_id` (and the same `date_format` / `locale` as the template). Fix every `error` row,
+   regenerate and validate again; mention warnings to the user. If the upload fails, the
+   organization's network may block the link's domain (Settings > Capabilities > code execution >
+   additional allowed domains): say so and fall back to checking against the rules in the entity
+   reference. Parcels (nodes) have no dry run: use the reference rules.
+5. **Hand over** the file in `<outputs>`, with a short summary: rows mapped,
    assumptions made, source values you could not map, warnings.
 
 ## Where the output goes
@@ -61,7 +55,6 @@ the current working directory, and tell the user the full path of the file.
 - Never invent a value to satisfy a required column; ask.
 - Do not rename headers, reorder columns or delete sheets, hidden ones included.
 - Dates, numbers and list values follow the formats in the entity reference.
-- A generated template can be long: if you had to fall back to `inline=True`, expect the chunked save in step 2 for observations.
 - `tenant_id` is never something you pass: the server resolves it from the user's login.
-- The local check cannot know what is already stored. Whether a row will create or update a
-  record is decided by the app at upload time, and the user sees it in the app's preview.
+- Validation never writes anything. For nodes, you cannot know what is already stored: whether
+  a row will create or update a record is decided by the app at upload time.

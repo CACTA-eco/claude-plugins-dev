@@ -17,7 +17,7 @@ slope and LS factor after import.
 
 Headers are in Spanish whatever the user's language; the keys above are what you use.
 
-## What `scripts/validate_nodes.py` checks
+## What to check
 
 - `campo` and `area_ha` present, `area_ha` numeric.
 - `lat` / `lon` both filled, numeric (a comma is accepted), in range.
@@ -25,7 +25,7 @@ Headers are in Spanish whatever the user's language; the keys above are what you
 - The same campo and parcel name twice: warning (the later row overwrites the earlier one).
 - Headers unchanged.
 
-It cannot tell whether a parcel or campo already exists.
+You cannot tell whether a parcel or campo already exists.
 
 ## Mapping tips
 

@@ -13,14 +13,12 @@ dimension is the `dimension` option of `generate_observation_bulk_excel`.
 
 ## Fields
 
-Run `python3 scripts/describe_template.py /tmp/template.xlsx` after saving the template: it lists
-each field's key, type, flags and allowed values, plus the date format and how many campos, lotes
-and products the template knows (`--all-options` prints the full lists). Headers equal the field
+The template lists each field's key, type, flags and allowed values. Headers equal the field
 keys unless a locale was given; `rows.json` always uses the keys.
 
 Rows go in `rows.json` as a list of objects, or, for `harvest`, as `{"Data": [...],
 "Perennial crops": [...], "Cover crops": [...]}` (both companion sheets are part of the harvest
-file; the exact sheet names are in the describe output). Besides the schema fields, every
+file; the exact sheet names are in the template). Besides the schema fields, every
 dimension in the first table below, and the harvest companion sheets, has two parcel columns:
 
 | Key | Meaning |
@@ -61,7 +59,7 @@ blank: the row then applies to the whole campo.
 | `perennial_planting` | perennial_crop | `perennial_crop` (perennial_crop) | n/a | none | none |
 | `regenerative_practice` | practice_type | none | none | none | none |
 
-The describe output is authoritative: tenants can change their schemas.
+The template is authoritative: tenants can change their schemas.
 
 - **Derived crop.** The import sets `crop` from the parcel's harvest and cover-crop cycles that
   contain the date; a date in several cycles splits the quantity between them by area. Without
@@ -77,9 +75,9 @@ The describe output is authoritative: tenants can change their schemas.
   harvest sheet. The sheet has no `start_date`, tillage or residue fields: the import starts the
   cycle with the campaign.
 - **Harvest `start_date`** may be left empty only for a perennial crop (the import uses the
-  campaign start); otherwise the row is rejected, and the script only warns.
+  campaign start); otherwise the row is rejected, and a missing one is easy to overlook.
 
-## What `scripts/validate_observations.py` checks
+## What to check
 
 Errors: missing or unknown campo or lote (or a lote that is not in that campo), a date that does
 not fit the date format or is before 2000, a decimal comma or non-numeric value, a value outside a
@@ -92,7 +90,7 @@ them into the first one with the quantities added, and the warning shows the run
 
 ## Not checked
 
-The script runs without database access, so these are decided at upload and shown in the app's
+You have no database access, so these are decided at upload and shown in the app's
 preview:
 
 - the campaign's date window and whether it is closed;
